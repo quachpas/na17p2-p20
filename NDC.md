@@ -11,7 +11,7 @@ L'utilisateur aura l'obligation de renseigner son **nom** et son **prénom**.
 
 L'utilisateur peut éventuellement s'il le veut renseigner ses coordonnées personnelles (**adresse postale**, **email**, **téléphone**, **site web personnel**). 
 
-L'utilisateur peut éventuellement télécharger *une* **photo** sur son profil.
+L'utilisateur peut éventuellement télécharger *une* **photo** sur son profil. La photo sera stockée avec pour titre "[nom]_[prenom]".
 
 L'utilisateur a l'obligation de choisir de **publier son nom, son prénom et sa photo**, c'est-à-dire qu'il fera un choix invidivuel pour chaque information. La publication de son information rendra accessible l'information en question sur le site de l'association. 
 

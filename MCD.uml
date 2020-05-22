@@ -1,0 +1,85 @@
+@startuml
+
+' PARAMETERS
+hide circle
+skinparam linetype polyline
+skinparam linetype ortho
+skinparam classAttributeIconSize 0
+skinparam groupInheritance 3
+
+enum T_adhésion << enum >> {
+    OR
+    ARGENT
+    BRONZE
+}
+
+Class Utilisateur {
+    nom : string
+    prenom : string
+    vnom : bool
+    vprenom : bool
+    vphoto : bool
+}
+
+class Administrateur {
+
+}
+
+Class Fichier {
+    chemin : string
+    titre : string
+}
+
+Class Adhérent {
+
+}
+
+Class Adhésion {
+    date_exp : date
+    montant : float
+    type : T_adhésion
+}
+
+Class Donateur {
+    nom : string
+    prenom : string
+}
+
+Class Don {
+    date : date
+    montant : float
+}
+
+
+Class Groupe {
+    titre : string
+    description : string
+}
+
+Class URL {
+    url : string
+    titre : string
+}
+
+Class Evt {
+    titre : string
+    date : string
+}
+
+note right of Evt 
+La date s'inspire du format
+ISO 8601 comme dans les 
+spécifications du format vCal.
+endnote
+
+Fichier "0...1" -- "0..1" Utilisateur : a une photo
+Fichier "*" - "*" Groupe : a partagé un fichier\n(photos ou autres)
+Adhérent -|> Utilisateur
+Adhésion "1...*" - "1" Adhérent : payé
+Utilisateur "0...1" - "0...1" Donateur : est un
+Donateur "1" - "1...*" Don : versé
+URL "*" -- "1" Groupe  : partagé par
+Groupe "1" - "*" Evt : partagé par
+Utilisateur <|-- Administrateur
+
+@enduml
