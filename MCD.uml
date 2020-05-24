@@ -9,13 +9,14 @@ skinparam groupInheritance 3
 
 class Administrateur 
 
-package Utilisateurs {
-
 enum T_adhésion << enum >> {
     OR
     ARGENT
     BRONZE
 }
+
+package Utilisateurs {
+
 
 Class Utilisateur {
     nom : string
@@ -113,6 +114,7 @@ Utilisateur <|-- Administrateur
 Fichier "*" - "*" Groupe : a partagé un fichier\n(photos ou autres)
 URL "*" -- "1" Groupe  : partagé par
 Groupe "1" - "*" Evt : partagé par
+Utilisateur "1...*" -- "*" Groupe : appartient à
 
 ' Utilisateur
 Adhérent -|> Utilisateur
