@@ -7,6 +7,10 @@ skinparam linetype ortho
 skinparam classAttributeIconSize 0
 skinparam groupInheritance 3
 
+class Administrateur 
+
+package Utilisateurs {
+
 enum T_adhésion << enum >> {
     OR
     ARGENT
@@ -19,17 +23,9 @@ Class Utilisateur {
     vnom : bool
     vprenom : bool
     vphoto : bool
+    date_inscription: date
+    date_derniere_connexion : date
 }
-
-class Administrateur {
-
-}
-
-Class Fichier {
-    chemin : string
-    titre : string
-}
-
 Class Adhérent {
 
 }
@@ -49,7 +45,15 @@ Class Don {
     date : date
     montant : float
 }
+}
+' PACKAGE ADMINISTRATEUR 
 
+package Groupes {
+Class Fichier {
+    chemin : string
+    titre : string
+    date_telechargement : date
+}
 
 Class Groupe {
     titre : string
@@ -71,15 +75,57 @@ La date s'inspire du format
 ISO 8601 comme dans les 
 spécifications du format vCal.
 endnote
+}
+' PACKAGE GROUPE
+
+package Archives {
+    class archive_adhésion {
+        date_exp : date
+        montant : float
+        type : T_adhésion
+    }
+    class archive_adhérent
+    class archive_utilisateur {
+        nom : string
+        prenom : string
+        vnom : bool
+        vprenom : bool
+        vphoto : bool
+        date_inscription: date
+        date_derniere_connexion : date
+    }
+    class archive_donateur {
+        nom : string
+        prenom : string
+    }
+    class archive_don {
+        date : date
+        montant : float
+    }
+}
+
+' LIENS
 
 Fichier "0...1" -- "0..1" Utilisateur : a une photo
+Utilisateur <|-- Administrateur
+
+' Groupe
 Fichier "*" - "*" Groupe : a partagé un fichier\n(photos ou autres)
+URL "*" -- "1" Groupe  : partagé par
+Groupe "1" - "*" Evt : partagé par
+
+' Utilisateur
 Adhérent -|> Utilisateur
 Adhésion "1...*" - "1" Adhérent : payé
 Utilisateur "0...1" - "0...1" Donateur : est un
 Donateur "1" - "1...*" Don : versé
-URL "*" -- "1" Groupe  : partagé par
-Groupe "1" - "*" Evt : partagé par
-Utilisateur <|-- Administrateur
+
+' Archive
+Utilisateurs ..> Archives : archivé dans
+archive_adhérent -|> archive_utilisateur
+archive_adhésion "1...*" - "1" archive_adhérent : payé
+archive_utilisateur "0...1" - "0...1" archive_donateur : est un
+archive_donateur "1" - "1...*" archive_don : versé
+
 
 @enduml

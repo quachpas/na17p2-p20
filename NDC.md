@@ -28,6 +28,12 @@ Les administrateurs de l'association pourront définir plusieurs **types d'adhé
 
 Les montants, les types d'adhésion, la périodicité et les motifs de remboursement sont relatifs aux statuts de l'association. Pour cette raison, les administrateurs de l'association ont la liberté de modifier la **typologie** directement dans l'application. 
 
+Cette liberté de modification pose un soucis dans le schéma du gestionnaire de base de données. Si on considère que la typologie est modélisée par un enum, que se passe-t-il lorsqu'on doit le modifier ? Cette modification représente un danger pour les informations stockés dans la table 
+
+On imagine plusieurs scénarions : 
+1. Ajout d'un type d'adhésion : la modification n'affecte en rien les autres types d'adhésion, et on modifie simplement les valeurs possibles de l'enum.
+2. La suppression d'un type d'adhésion : elle est en pratique impossible sans complexifier inutilement le schéma. On ne peut que "ignorer" la valeur. On imagine restreindre les insertions aux valeurs de l'enum SAUF ces valeurs "supprimées". De préférence, on implémenterait cela du côté applicatif, en éliminant tout simplement les types d'adhésions supprimées. Il serait alors en théorie "impossible" d'insérer une adhésion avec ce type là.
+
 ### Dons
 La donation est un service fourni par l'application. Les donations via l'application ne pourront donc être accessibles qu'aux utilisateurs de l'application, c'est-à-dire ceux qui auront créé un compte utilisateur. 
 
@@ -107,10 +113,19 @@ Les administrateurs gèrent la création et la suppression de groupes. Ils gère
 Les fichiers binaires tels que les photos seront stockés sur le serveur compressés, et on stockera dans la base de données le chemin vers le fichier. 
 
 ### Utilisateur
-Les données des utilisateurs seront archivées, données adhérents compris évidemment. L'historique des adhésions fait également partie des archives.
+Les données des utilisateurs seront archivées, données adhérents compris évidemment. 
+Lors de l'implémentation, on pourra dédoubler les tables par archive_utilisateur, archive_adhésion, archive_donateur, archive_don qui sont des doublons des tables utilisateur, adhésion, donateur et don. 
+
+On y stockerait uniquement les données qui datent d'il y a plus d'une certaine date. Par exemple, toutes données d'adhésion expirées vieilles de plus de 10 ans. L'historique des serait affecté, car on irait chercher les données vieilles de 10 ans que sur demande de l'utilisateur. 
+
+Pour les utilisateurs, on pourrait imaginer archiver les utilisateurs inactifs de plus de 2 ans. On archiverait toutes les données les concernants à la fois. 
+
+Pour les donateurs, on peut archiver les donateurs si leurs derniers dons datent d'il y a plus de 2 ans par exemple.
+
+L'historique des adhésions fait également partie des archives.
 
 ### Groupe
-Les données concernant les groupes sont périssables. Si le groupe est supprimé ou n'a plus de membres, les données concernant le groupe seront supprimées définitivement.
+Les données concernant les groupes sont périssables. Si le groupe est supprimé ou n'a plus de membres, les données concernant le groupe seront supprimées définitivement. Cela inclut les éventuels URLS/Fichiers/Evt qui y étaient liés.
 
 ## Exemples d'interfaces de l'application
 
