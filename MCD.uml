@@ -19,22 +19,26 @@ package Utilisateurs {
 
 
 Class Utilisateur {
-    nom : string
-    prenom : string
-    vnom : bool
-    vprenom : bool
-    vphoto : bool
-    date_inscription: date
-    date_derniere_connexion : date
+    nom : string {not null}
+    prenom : string {not null}
+    vnom : bool {not null}
+    vprenom : bool {not null}
+    vphoto : bool {not null}
+    date_inscription: date {not null}
+    date_derniere_connexion : date {not null}
+    adresse : string,
+    email : string,
+    phone : string,
+    website : string,
 }
 Class Adhérent {
 
 }
 
 Class Adhésion {
-    date_exp : date
-    montant : float
-    type : T_adhésion
+    date_exp : date {not null}
+    montant : float {not null}
+    type : T_adhésion {not null}
 }
 
 Class Donateur {
@@ -43,8 +47,8 @@ Class Donateur {
 }
 
 Class Don {
-    date : date
-    montant : float
+    date : date {not null}
+    montant : float {not null}
 }
 }
 ' PACKAGE ADMINISTRATEUR 
@@ -111,7 +115,7 @@ Fichier "0...1" -- "0..1" Utilisateur : a une photo
 Utilisateur <|-- Administrateur
 
 ' Groupe
-Fichier "*" - "*" Groupe : a partagé un fichier\n(photos ou autres)
+Fichier "*" - "1" Groupe : a partagé un fichier\n(photos ou autres)
 URL "*" -- "1" Groupe  : partagé par
 Groupe "1" - "*" Evt : partagé par
 Utilisateur "1...*" -- "*" Groupe : appartient à

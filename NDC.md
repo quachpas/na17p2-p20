@@ -28,7 +28,7 @@ Les administrateurs de l'association pourront définir plusieurs **types d'adhé
 
 Les montants, les types d'adhésion, la périodicité et les motifs de remboursement sont relatifs aux statuts de l'association. Pour cette raison, les administrateurs de l'association ont la liberté de modifier la **typologie** directement dans l'application. 
 
-Cette liberté de modification pose un soucis dans le schéma du gestionnaire de base de données. Si on considère que la typologie est modélisée par un enum, que se passe-t-il lorsqu'on doit le modifier ? Cette modification représente un danger pour les informations stockés dans la table 
+Cette liberté de modification pose un soucis dans le schéma du gestionnaire de base de données. Si on considère que la typologie est modélisée par un enum, que se passe-t-il lorsqu'on doit le modifier ? Cette modification représente un danger pour les informations stockés dans la table.
 
 On imagine plusieurs scénarions : 
 1. Ajout d'un type d'adhésion : la modification n'affecte en rien les autres types d'adhésion, et on modifie simplement les valeurs possibles de l'enum.

@@ -1,0 +1,190 @@
+enum T_adhésion {'bronze', 'argent', 'or'} // Exemple
+
+// La gestion des comptes administrateurs serait plus judicieuse si l'on gérait les permissions avec une table d'association. 
+
+Role ( 
+    #id_role : SERIAL {PRIMARY KEY},
+    nom_role : string {not null} // Utilisateur, ou admin
+)
+
+Utilisateur (
+    #id_user : SERIAL {PRIMARY KEY},
+    nom : string {not null},
+    prenom : string {not null},
+    mdp : string {not null},
+    vnom : bool {not null},
+    vprenom : bool {not null},
+    vphoto : bool {not null},
+    date_inscription : date {not null},
+    date_derniere_connexion : date {not null},
+    adresse : string,
+    email : string,
+    phone : string,
+    website : string,
+)   
+
+Role_utilisateur (
+    #id_role => Role.id_role,
+    #id_user => Utilisateur.id_user,
+    PRIMARY KEY (id_role, id_user)
+)
+
+Adhésion (
+    #id_user => Utilisateur.id_user,
+    #date_expiration : date,
+    montant : float {not null},
+    type : T_adhésion {not null},
+    PRIMARY KEY (id_user, date_expiration)
+)
+
+Donateur (
+    #id_donateur : SERIAL {PRIMARY KEY},
+    nom : string,
+    prenom : string
+)
+
+Donateur_utilisateur (
+    #id_donateur => Donateur.id_donateur,
+    #id_user => Utilisateur.id_user,
+    PRIMARY KEY (id_donateur, id_user)
+)
+
+Don {
+    #id_don : SERIAL {PRIMARY KEY},
+    date : date {not null},
+    montant : float {not null},
+    #id_donateur => Donateur.id_donateur,
+}
+
+Fichier (
+    #id_fichier : SERIAL {PRIMARY KEY},
+    chemin : string {not null},
+    titre : string {not null},
+    date_telechargement : date {not null}
+)
+
+PP (
+    #id_photo => Fichier.id_fichier,
+    #id_user => Utilisateur.id_user,
+    PRIMARY KEY (id_photo, id_user)
+)
+
+Groupe (
+    #id_groupe : SERIAL {PRIMARY KEY},
+    titre : string,
+    description : string
+)
+
+Membre_groupe (
+    #id_groupe => Groupe.id_groupe,
+    #id_user => Utilisateur.id_user,
+    PRIMARY KEY (id_groupe, id_user)
+)
+
+Fichier_groupe (
+    #id_photo => Fichier.id_fichier,
+    #id_groupe => Groupe.id_groupe,
+    PRIMARY KEY (id_photo, id_groupe)
+)
+
+URL (
+    #id_url : SERIAL {PRIMARY KEY},
+    url : string {not null},
+    titre : string {not null},
+)
+
+URL_groupe (
+    #id_url => URL.id_url,
+    #id_groupe => Groupe.id_groupe,
+    PRIMARY KEY (id_url, id_groupe)
+)
+
+Evt (
+    #id_evt : SERIAL {PRIMARY KEY},
+    evt : string {not null},
+    date : string {not null} {"format vCal"},
+)
+
+Evt_groupe (
+    #id_evt => Evt.id_evt,
+    #id_groupe => Groupe.id_groupe,
+    PRIMARY KEY (id_evt, id_groupe)
+)
+
+
+archive_utilisateur (
+    #id_user : SERIAL {PRIMARY KEY},
+    nom : string {not null},
+    prenom : string {not null},
+    mdp : string {not null},
+    vnom : bool {not null},
+    vprenom : bool {not null},
+    vphoto : bool {not null},
+    date_inscription : date {not null},
+    date_derniere_connexion : date {not null}
+)   
+
+archive_role_utilisateur (
+    #id_role => Role.id_role,
+    #id_user => archive_utilisateur.id_user,
+    PRIMARY KEY (id_role, id_user)
+)
+
+archive_adhésion (
+    #id_user => archive_utilisateur.id_user,
+    #date_expiration : date,
+    montant : float {not null},
+    type : T_adhésion {not null},
+    PRIMARY KEY (id_user, date_expiration)
+)
+
+archive_donateur (
+    #id_donateur : SERIAL {PRIMARY KEY},
+    nom : string,
+    prenom : string
+)
+
+archive_donateur_utilisateur (
+    #id_donateur => archive_donateur.id_donateur,
+    #id_user => archive_utilisateur.id_user,
+    PRIMARY KEY (id_donateur, id_user)
+)
+
+archive_don {
+    #id_don : SERIAL {PRIMARY KEY},
+    date : date {not null},
+    montant : float {not null},
+    #id_donateur => archive_donateur.id_donateur,
+}
+
+Vue Profil Utilisateur :
+
+R1 = JOINTURE(PP, Utilisateur, PP.id_user = Utilisateur.id_user)
+R2 = JOINTURE(R1, Fichier, R1.id_photo = Fichier.id_photo)
+vProfilUtilisateur = PROJECTION (R2, 
+                                R2.R1.id_user,
+                                R2.nom,
+                                R2.prenom,
+                                R2.vnom,
+                                R2.vprenom,
+                                R2.date_inscription,
+                                R2.date_derniere_connexion,
+                                R2.vphoto,
+                                R2.chemin // Chemin vers photo de profil
+)
+
+Vue Adhérants Actuels :
+
+R1 = RESTRICTION (Adhésion, date_expiration > today)
+R2 = JOINTURE (Utilisateur, Adhésion, Utilisateur.id_user = Adhésion.id_user)
+R3 = JOINTURE (R2, PP, R2.id_user = PP.id_user)
+R4 = PROJECTION (R3, 
+                R3.R2.id_user,
+                R3.nom,
+                R3.prénom,
+                R3.vphoto,
+                R3.chemin // chemin vers photo de profil
+)
+
+
+
