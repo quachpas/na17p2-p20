@@ -37,18 +37,22 @@ Adhésion (
     id_user => Utilisateur.id_user,
     date_expiration : date,
     montant : float {not null},
-    type : T_adhésion {not null},
+    type_adhésion : T_adhésion {not null},
 )
 
 Donateur (
-    #id_donateur : SERIAL {PRIMARY KEY},
+    #id_donateur : SERIAL {PRIMARY KEY}
+)
+
+Donateur_info (
+    #id_donateur => Donateur.id_donateur
     nom : string,
     prenom : string
 )
 
 Donateur_utilisateur (
     #id_donateur => Donateur.id_donateur,
-    #id_user => Utilisateur.id_user,
+    #id_user => Utilisateur.id_user {UNIQUE},
     PRIMARY KEY (id_donateur, id_user)
 )
 
@@ -238,8 +242,9 @@ R6 = PROJECTION(R5,
 Vue Donateurs-Dons :
 
 R1 = JOINTURE_EXTERNE_GAUCHE(Donateur, Donateur_utilisateur, Donateur.id_donateur = Donateur_utilisateur.id_donateur)
-R2 = JOINTURE_EXTERNE_GAUCHE(R1, Utilisateur, R1.id_user = Utilisateur.id_user)
-vDonateursDons = JOINTURE_EXTERNE_GAUCHE(R2, Don, R2.id_donateur = Don.id_donateur)
+R2 = JOINTURE_EXTERNE_GAUCHE(R1, Donateur_info, R1.id_donateur = Donateur_info.id_donateur)
+R3 = JOINTURE_EXTERNE_GAUCHE(R2, Utilisateur, R2.id_user = Utilisateur.id_user)
+vDonateursDons = JOINTURE_EXTERNE_GAUCHE(R3, Don, R3.id_donateur = Don.id_donateur)
 
 Vue DonateursUtilisateurs :
 
@@ -293,3 +298,4 @@ R7 = PROJECTION(R7,
 )
 
 Les vues archives sont identiques aux vues utilisateurs/donateurs.
+
