@@ -2,7 +2,7 @@ enum T_adhésion {'bronze', 'argent', 'or'} // Exemple
 
 // La gestion des comptes administrateurs serait plus judicieuse si l'on gérait les permissions avec une table d'association. 
 
-Role ( 
+Roles ( 
     #id_role : SERIAL {PRIMARY KEY},
     nom_role : string {not null} // Utilisateur, ou admin
 )
@@ -86,7 +86,7 @@ Fichier_groupe (
     #id_groupe => Groupe.id_groupe,
     PRIMARY KEY (id_photo, id_groupe)
 )
-
+DROP TABLE IF EXISTS
 URL (
     #id_url : SERIAL {PRIMARY KEY},
     url : string {not null},
@@ -228,6 +228,16 @@ R6 = PROJECTION(R5,
                 R5.chemin
 )
 
+Vue Donateurs-Dons :
+
+R1 = JOINTURE_EXTERNE_GAUCHE(Donateur, Donateur_utilisateur, Donateur.id_donateur = Donateur_utilisateur.id_donateur)
+R2 = JOINTURE_EXTERNE_GAUCHE(R1, Utilisateur, R1.id_user = Utilisateur.id_user)
+vDonateursDons = JOINTURE_EXTERNE_GAUCHE(R2, Don, R2.id_donateur = Don.id_donateur)
+
+Vue DonateursUtilisateurs :
+
+R1 = JOINTURE(Donateur, Donateur_utilisateur, Donateur.id_donateur = Donateur_utilisateur.id_donateur)
+vDonateursUtilisateurs = JOINTURE(R1, Utilisateur, R1.id_user = Utilisateur.id_user)
 
 Vue Historique adhésions non archivés:
 
