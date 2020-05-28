@@ -1,6 +1,9 @@
 enum T_adhésion {'bronze', 'argent', 'or'} // Exemple
 
 // La gestion des comptes administrateurs serait plus judicieuse si l'on gérait les permissions avec une table d'association. 
+// L'héritage administrateur disparaît pour une gestion plus astucieuse avec des roles.
+
+// L'héritage adhérant n'a pas besoin d'être géré. Un adhérant n'est qu'une spécialisation vide d'un utilisateur.
 
 Roles ( 
     #id_role : SERIAL {PRIMARY KEY},
@@ -86,7 +89,7 @@ Fichier_groupe (
     #id_groupe => Groupe.id_groupe,
     PRIMARY KEY (id_photo, id_groupe)
 )
-DROP TABLE IF EXISTS
+
 URL (
     #id_url : SERIAL {PRIMARY KEY},
     url : string {not null},
@@ -121,7 +124,11 @@ archive_utilisateur (
     vprenom : bool {not null},
     vphoto : bool {not null},
     date_inscription : date {not null},
-    date_derniere_connexion : date {not null}
+    date_derniere_connexion : date {not null},
+    adresse : string,
+    email : string,
+    phone : string,
+    website : string
 )   
 
 archive_role_utilisateur (
@@ -204,7 +211,7 @@ R2 = PROJECTION(R1, R1.id_user, R1.type, MAX(R1.date_expiration)) GROUP BY R1.id
 // On obtient dans R2 la listes des utilisateurs dont l'adhésion a expiré, associé à leur adhésion la plus récente. 
 R3 = JOINTURE(Utilisateur, R2, Utilisateur.id_user = R2.id_user)
 R4 = JOINTURE(R3, PP, R3.id_user = PP.id_user)
-R5 = JOINTURe(R4, Fichier, R4.id_photo, Fichier.id_fichier)
+R5 = JOINTURE(R4, Fichier, R4.id_photo = Fichier.id_fichier)
 vExAdhérants = PROJECTION(R5, 
                         R5.R4.R3.R2.R1.id_user,
                         R5.nom,
@@ -215,8 +222,8 @@ vExAdhérants = PROJECTION(R5,
 Vue Adhésion expirant bientôt : 
 Durée : 1 an, 1 mois, ...
 R1 = RESTRICTION (Adhésion, date_expiration > today)
-R2 = PROJECTION(R1, R1.id_user, limite AS date_expiration - today)
-R3 = RESTRICTION(R1, limite < today)
+R2 = PROJECTION(R1, R1.id_user, date_expiration - Durée AS limite)
+R3 = RESTRICTION(R2, limite < today)
 R4 = JOINTURE(R3, Utilisateur, R3.id_user = Utilisateur.id_user)
 R5 = JOINTURE(R4, PP, R4.id_user = Utilisateur.id_user)
 R6 = JOINTURE(R5, Fichier, R5.id_photo = Fichier.id_fichier)
@@ -256,11 +263,13 @@ R1 = JOINTURE(Groupe, Membre_groupe, Groupe.id_groupe= Membre_groupe.id_groupe)
 R2 = JOINTURE(R1, Utilisateur, R1.id_user = Utilisateur.id_user)
 R3 = JOINTURE(R2, PP, R2.id_user = PP.id_user)
 R4 = JOINTURE(R3, Fichier, R3.id_photo = Fichier.id_fichier)
-vMembreGroupe = PROJECTION(R2,
-                        R2.R1.id_user,
-                        R2.nom,
-                        R2.prenom,
-                        R2.chemin,
+vMembreGroupe = PROJECTION(R4,
+                        R4.id_groupe,
+                        R4.titre,
+                        R4.R3.R2.R1.id_user,
+                        R4.nom,
+                        R4.prenom,
+                        R4.chemin,
 )
 
 Vue Info Groupe :
@@ -283,4 +292,4 @@ R7 = PROJECTION(R7,
                 Evt.date,
 )
 
-Les vues archives sont identiques aux vues utilisateurs/donateurs. 
+Les vues archives sont identiques aux vues utilisateurs/donateurs.
