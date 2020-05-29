@@ -15,6 +15,7 @@ Les administrateurs peuvent gérer les adhésions, c'est à dire indiquer qui es
 Les administrateurs peuvent créer des groupes et assigner les personnes à des groupes. Les personnes d'un groupe peuvent ajouter des informations à ce groupe : date d'un événement (avec export au format vCal), URL d'un outil web utilisé par le groupe (chaque URL est associée à un titre), informations générales (composées d'un titre, d'un texte), photos (composées d'un titre et d'un fichier), etc. Chaque groupe dispose d'une page web exposant les informations associées à ce groupe.
 
 Les informations concernant les groupes sont périssables (elle peuvent être définitivement supprimées). En revanche les informations concernant les adhésions et les adhérents doivent pouvoir être archivées (c'est à dire conserver dans un espace de la base de données qui n'est plus accessible via l'application principale).
+
 ## Exemple d'interfaces de l'application
 - page de connexion
 - page d'inscription

@@ -2,6 +2,8 @@ CREATE SCHEMA IF NOT EXISTS na17p2;
 SET search_path TO na17p2;
 
 DROP TYPE IF EXISTS T_adhésion CASCADE;
+DROP TABLE IF EXISTS Association CASCADE;
+DROP TABLE IF EXISTS Fédération CASCADE;
 DROP TABLE IF EXISTS Roles CASCADE;
 DROP TABLE IF EXISTS Utilisateur CASCADE;
 DROP TABLE IF EXISTS Role_utilisateur CASCADE;
@@ -23,9 +25,12 @@ DROP TABLE IF EXISTS archive_utilisateur CASCADE;
 DROP TABLE IF EXISTS archive_role_utilisateur CASCADE;
 DROP TABLE IF EXISTS archive_adhésion CASCADE;
 DROP TABLE IF EXISTS archive_donateur CASCADE;
+DROP TABLE IF EXISTS "archive_donateur_info" CASCADE;
 DROP TABLE IF EXISTS archive_donateur_utilisateur CASCADE;
 DROP TABLE IF EXISTS archive_don CASCADE;
 DROP VIEW IF EXISTS "viewProfilUtilisateur" CASCADE;
+DROP VIEW IF EXISTS "viewFédération" CASCADE;
+DROP VIEW IF EXISTS "viewAdherantsAsso" CASCADE;
 DROP VIEW IF EXISTS "viewAdhérantsActuels" CASCADE;
 DROP VIEW IF EXISTS "viewExAdhérants" CASCADE;
 DROP VIEW IF EXISTS "viewAdhésionExpirant" CASCADE;
@@ -41,6 +46,26 @@ DROP VIEW IF EXISTS "viewArchiveDonateursDons" CASCADE;
 DROP VIEW IF EXISTS "viewArchiveDonateursUtilisateurs" CASCADE;
 
 CREATE TYPE T_adhésion AS ENUM ('Bronze', 'Argent', 'Or'); 
+
+CREATE TABLE Association(
+	id_association BIGSERIAL,
+	nom VARCHAR(30) NOT NULL,
+	description TEXT NOT NULL,
+	adresse VARCHAR(100) NOT NULL,
+	telephone VARCHAR(10) NOT NULL,
+	email VARCHAR(50) NOT NULL,
+	date_creation DATE NOT NULL,
+	PRIMARY KEY (id_association)
+);
+
+CREATE TABLE Fédération(
+	id_federation BIGINT,
+	id_association BIGINT,
+	PRIMARY KEY (id_federation, id_association),
+	FOREIGN KEY (id_federation) REFERENCES Association(id_association),
+	FOREIGN KEY (id_association) REFERENCES Association(id_association),
+	CHECK (id_federation <> id_association)
+);
 
 CREATE TABLE Roles(
 	id_role BIGSERIAL,
@@ -66,8 +91,8 @@ CREATE TABLE Utilisateur(
 );
 
 CREATE TABLE Role_utilisateur(
-	id_role BIGSERIAL,
-	id_user BIGSERIAL,
+	id_role BIGINT,
+	id_user BIGINT,
 	PRIMARY KEY (id_role, id_user),
 	FOREIGN KEY (id_role) REFERENCES Roles(id_role),
 	FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user)
@@ -75,11 +100,14 @@ CREATE TABLE Role_utilisateur(
 
 CREATE TABLE Adhésion(
 	id_adhésion BIGSERIAL,
-	id_user BIGSERIAL,
+	id_user BIGINT,
 	date_expiration DATE,
 	montant FLOAT NOT NULL,
 	type_adhésion T_adhésion NOT NULL,
-	PRIMARY KEY (id_adhésion)
+	id_association BIGINT,
+	PRIMARY KEY (id_adhésion),
+	FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user),
+	FOREIGN KEY (id_association) REFERENCES Association(id_association)
 );
 
 CREATE TABLE Donateur(
@@ -88,7 +116,7 @@ CREATE TABLE Donateur(
 );
 
 CREATE TABLE Donateur_info(
-	id_donateur BIGSERIAL,
+	id_donateur BIGINT,
 	nom VARCHAR(30),
 	prenom VARCHAR(30),
 	PRIMARY KEY (id_donateur),
@@ -96,8 +124,8 @@ CREATE TABLE Donateur_info(
 );
 
 CREATE TABLE Donateur_utilisateur(
-	id_donateur BIGSERIAL,
-	id_user BIGSERIAL UNIQUE,
+	id_donateur BIGINT,
+	id_user BIGINT UNIQUE,
 	PRIMARY KEY (id_donateur, id_user),
 	FOREIGN KEY (id_donateur) REFERENCES Donateur(id_donateur),
 	FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user)
@@ -107,8 +135,10 @@ CREATE TABLE Don(
 	id_don BIGSERIAL,
 	date DATE NOT NULL,
 	montant FLOAT NOT NULL,
-	id_donateur BIGSERIAL,
-	FOREIGN KEY(id_donateur) REFERENCES Donateur(id_donateur)
+	id_donateur BIGINT,
+	id_association BIGINT,
+	FOREIGN KEY(id_donateur) REFERENCES Donateur(id_donateur),
+	FOREIGN KEY(id_association) REFERENCES Association(id_association)
 );
 
 CREATE TABLE Fichier(
@@ -120,8 +150,8 @@ CREATE TABLE Fichier(
 );
 
 CREATE TABLE PP(
-	id_photo BIGSERIAL,
-	id_user BIGSERIAL,
+	id_photo BIGINT,
+	id_user BIGINT,
 	PRIMARY KEY (id_photo, id_user),
 	FOREIGN KEY (id_photo) REFERENCES Fichier(id_fichier),
 	FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user)
@@ -130,21 +160,21 @@ CREATE TABLE PP(
 CREATE TABLE Groupe(
 	id_groupe BIGSERIAL,
 	titre VARCHAR(50),
-	description VARCHAR(50),
+	description TEXT,
 	PRIMARY KEY (id_groupe)
 );
 
 CREATE TABLE Membre_groupe(
-	id_groupe BIGSERIAL,
-	id_user BIGSERIAL,
+	id_groupe BIGINT,
+	id_user BIGINT,
 	PRIMARY KEY (id_groupe, id_user),
 	FOREIGN KEY (id_groupe) REFERENCES Groupe(id_groupe),
 	FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user)
 );
 
 CREATE TABLE Fichier_groupe(
-	id_photo BIGSERIAL,
-	id_groupe BIGSERIAL,
+	id_photo BIGINT,
+	id_groupe BIGINT,
 	PRIMARY KEY (id_photo, id_groupe),
 	FOREIGN KEY (id_groupe) REFERENCES Fichier(id_fichier),
 	FOREIGN KEY (id_groupe) REFERENCES Groupe(id_groupe)
@@ -158,8 +188,8 @@ CREATE TABLE URL(
 );
 
 CREATE TABLE URL_groupe(
-	id_url BIGSERIAL,
-	id_groupe BIGSERIAL,
+	id_url BIGINT,
+	id_groupe BIGINT,
 	PRIMARY KEY (id_url, id_groupe),
 	FOREIGN KEY (id_url) REFERENCES URL(id_url),
 	FOREIGN KEY (id_groupe) REFERENCES Groupe(id_groupe)
@@ -195,8 +225,8 @@ CREATE TABLE archive_utilisateur(
 	PRIMARY KEY (id_user)
 );
 CREATE TABLE archive_role_utilisateur(
-	id_role BIGSERIAL,
-	id_user BIGSERIAL,
+	id_role BIGINT,
+	id_user BIGINT,
 	PRIMARY KEY (id_role, id_user),
 	FOREIGN KEY (id_role) REFERENCES Roles(id_role),
 	FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user)
@@ -207,28 +237,47 @@ CREATE TABLE archive_adhésion(
 	date_expiration DATE,
 	montant FLOAT NOT NULL,
 	type_adhésion T_adhésion NOT NULL,
-	PRIMARY KEY (id_adhésion)
+	id_association BIGINT,
+	PRIMARY KEY (id_adhésion),
+	FOREIGN KEY (id_association) REFERENCES Association(id_association)
 );
+
 CREATE TABLE archive_donateur(
 	id_donateur BIGSERIAL,
-	nom VARCHAR(30),
-	prenom VARCHAR(30),
 	PRIMARY KEY (id_donateur)
 );
-CREATE TABLE archive_donateur_utilisateur(
-	id_donateur BIGSERIAL,
-	id_user BIGSERIAL,
-	PRIMARY KEY (id_donateur, id_user),
-	FOREIGN KEY (id_donateur) REFERENCES Donateur(id_donateur),
-	FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user)
+
+CREATE TABLE archive_donateur_info(
+	id_donateur BIGINT,
+	nom VARCHAR(30),
+	prenom VARCHAR(30),
+	PRIMARY KEY (id_donateur),
+	FOREIGN KEY (id_donateur) REFERENCES archive_donateur(id_donateur)
 );
+
+CREATE TABLE archive_donateur_utilisateur(
+	id_donateur BIGINT,
+	id_user BIGINT,
+	PRIMARY KEY (id_donateur, id_user),
+	FOREIGN KEY (id_donateur) REFERENCES archive_donateur(id_donateur),
+	FOREIGN KEY (id_user) REFERENCES archive_utilisateur(id_user)
+);
+
 CREATE TABLE archive_don(
 	id_don BIGSERIAL,
 	date DATE NOT NULL,
 	montant FLOAT NOT NULL,
-	id_donateur BIGSERIAL,
-	FOREIGN KEY(id_donateur) REFERENCES Donateur(id_donateur)
+	id_donateur BIGINT,
+	id_association BIGINT,
+	FOREIGN KEY(id_donateur) REFERENCES archive_donateur(id_donateur),
+	FOREIGN KEY(id_association) REFERENCES Association(id_association)
 );
+
+CREATE VIEW viewFédération AS
+	SELECT Fédération.id_federation, Fédération.id_association, Association.nom, Association.description, Association.adresse, Association.telephone, Association.email, Association.date_creation
+	FROM Fédération
+	JOIN Association ON Fédération.id_association = Association.id_association
+;
 
 CREATE VIEW viewProfilUtilisateur AS
 	SELECT info_user.id_user, info_user.nom, info_user.prenom, info_user.date_inscription, info_user.date_derniere_connexion, AD.type_adhésion, AD.date_expiration, info_user.chemin
@@ -239,7 +288,15 @@ CREATE VIEW viewProfilUtilisateur AS
 	LEFT JOIN Adhésion AS AD ON AD.id_user = info_user.id_user
 	WHERE AD.date_expiration > CURRENT_TIMESTAMP
 ;
-
+CREATE VIEW viewAdherantsAsso AS
+	SELECT Association.id_association, Adhésion.date_expiration, Adhésion.type_adhésion, Utilisateur.id_user, Utilisateur.nom, Utilisateur.prenom, Utilisateur.date_inscription, Utilisateur.date_derniere_connexion, Utilisateur.adresse, Utilisateur.email, Utilisateur.phone, Utilisateur.website, Fichier.chemin
+	FROM Association 
+	JOIN Adhésion ON Association.id_association = Adhésion.id_association
+	JOIN Utilisateur ON Adhésion.id_user = Utilisateur.id_user
+	JOIN PP ON PP.id_user = Adhésion.id_user
+	JOIN Fichier ON PP.id_photo = Fichier.id_fichier
+	
+;
 CREATE VIEW viewAdhérantsActuels AS
 	SELECT U.id_user, U.nom, U.prenom, F.chemin
 	FROM Utilisateur AS U, Adhésion AS AD, PP, Fichier F
@@ -298,7 +355,16 @@ CREATE VIEW viewInfoGroupe AS
 	FROM Groupe AS G, Fichier AS F, Fichier_groupe as FG, URL_groupe as UG, URL, Evt_groupe as EG, Evt AS E
 	WHERE G.id_groupe = FG.id_groupe AND F.id_fichier = FG.id_photo AND G.id_groupe = UG.id_groupe AND URL.id_url = UG.id_url AND G.id_groupe = EG.id_groupe AND E.id_evt = EG.id_evt
 ;
+INSERT INTO Association(nom, description, adresse, telephone, email, date_creation)
+VALUES
+('Asso1', 'Asso1', '123 rue bidon', '0102030405', 'bidon1@bidon1.com', '2020-01-01 00:00:00'),
+('Asso2', 'Asso3', '231 rue bidon', '0202030405', 'bidon2@bidon2.com', '2020-02-02 00:00:00'),
+('Asso3', 'Asso3', '312 rue bidon', '0302030405', 'bidon3@bidon3.com', '2020-03-03 00:00:00');
 
+INSERT INTO Fédération(id_federation, id_association)
+VALUES 
+(1, 2),
+(1, 3);
 
 INSERT INTO Utilisateur (id_user, nom, prenom, mdp, vnom, vprenom, vphoto, date_inscription, date_derniere_connexion, adresse, email, phone, website)
 VALUES 
@@ -319,18 +385,18 @@ VALUES ('Utilisateur'), ('Administrateur');
 INSERT INTO Role_utilisateur (id_role, id_user)
 VALUES (2, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9), (1, 10);
 
-INSERT INTO Adhésion (id_user, date_expiration, montant, type_adhésion)
+INSERT INTO Adhésion (id_user, date_expiration, montant, type_adhésion, id_association)
 VALUES 
-(1, '2019-04-01 11:37:40', 40.0, 'Argent'),
-(2, '2019-01-15 11:01:14',  20.0, 'Bronze'),
-(3, '2019-11-30 15:54:00', 20.0, 'Bronze'),
-(4, '2018-12-02 17:27:36',  40.0, 'Argent'),
-(5, '2020-06-22 08:42:59',  20.0, 'Bronze'),
-(6, '2019-06-26 10:24:50',  40.0, 'Argent'),
-(7, '2019-04-16 06:12:21',  40.0, 'Argent'),
-(8, '2019-12-25 07:01:27',  60.0, 'Or'),
-(9, '2019-02-12 18:26:33', 20.0, 'Bronze'),
-(10, '2020-02-17 14:13:39',  40.0, 'Argent');
+(1, '2019-04-01 11:37:40', 40.0, 'Argent', 2),
+(2, '2019-01-15 11:01:14',  20.0, 'Bronze', 2),
+(3, '2019-11-30 15:54:00', 20.0, 'Bronze', 2),
+(4, '2018-12-02 17:27:36',  40.0, 'Argent', 2),
+(5, '2020-06-22 08:42:59',  20.0, 'Bronze', 2),
+(6, '2019-06-26 10:24:50',  40.0, 'Argent', 3),
+(7, '2019-04-16 06:12:21',  40.0, 'Argent', 3),
+(8, '2019-12-25 07:01:27',  60.0, 'Or', 3),
+(9, '2019-02-12 18:26:33', 20.0, 'Bronze', 3),
+(10, '2020-02-17 14:13:39',  40.0, 'Argent', 3);
 
 INSERT INTO Donateur (id_donateur)
 VALUES (1), (2), (3), (4);
@@ -341,8 +407,12 @@ VALUES (1, 'Jesus', 'Christ');
 INSERT INTO Donateur_utilisateur(id_donateur, id_user)
 VALUES (2, 1), (3, 2), (4, 3);
 
-INSERT INTO Don(date, montant, id_donateur)
-VALUES ('2020-02-25 18:11:39', 95.4, 1), ('2019-08-29 01:18:45', 10.0, 2), ('2020-01-01 11:00:11', 100.0, 3), ('2018-04-05 23:09:45', 25.1, 4);
+INSERT INTO Don(date, montant, id_donateur, id_association)
+VALUES 
+('2020-02-25 18:11:39', 95.4, 1, 1),
+('2019-08-29 01:18:45', 10.0, 2, 1),
+('2020-01-01 11:00:11', 100.0, 3, 1),
+('2018-04-05 23:09:45', 25.1, 4, 1);
 
 INSERT INTO Fichier(id_fichier, chemin, titre, date_telechargement)
 VALUES 

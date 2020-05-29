@@ -5,6 +5,23 @@ enum T_adhésion {'bronze', 'argent', 'or'} // Exemple
 
 // L'héritage adhérant n'a pas besoin d'être géré. Un adhérant n'est qu'une spécialisation vide d'un utilisateur.
 
+Association (
+    #id_association : SERIAL {PRIMARY KEY},
+    nom : string {not null},
+    description : string {not null},
+    adresse : string {not null},
+    téléphone : string {not null},
+    email : string {not null},
+    date_creation : date {not null},
+)
+
+Fédération (
+    #id_fédération => Association(id_association),
+    #id_association => Association(id_association),
+    PRIMARY KEY (id_federation, id_association)
+    id_federation <> id_association
+)
+
 Roles ( 
     #id_role : SERIAL {PRIMARY KEY},
     nom_role : string {not null} // Utilisateur, ou admin
@@ -38,6 +55,7 @@ Adhésion (
     date_expiration : date,
     montant : float {not null},
     type_adhésion : T_adhésion {not null},
+    id_association => Association(id_association)
 )
 
 Donateur (
@@ -60,7 +78,8 @@ Don {
     #id_don : SERIAL {PRIMARY KEY},
     date : date {not null},
     montant : float {not null},
-    #id_donateur => Donateur.id_donateur,
+    id_donateur => Donateur.id_donateur,
+    id_association => Association(id_association)
 }
 
 Fichier (

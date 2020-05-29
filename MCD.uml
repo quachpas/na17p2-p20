@@ -1,3 +1,4 @@
+
 @startuml
 
 ' PARAMETERS
@@ -7,6 +8,7 @@ skinparam linetype ortho
 skinparam classAttributeIconSize 0
 skinparam groupInheritance 3
 
+package Administration {
 class Administrateur 
 
 enum T_adhésion << enum >> {
@@ -14,7 +16,7 @@ enum T_adhésion << enum >> {
     ARGENT
     BRONZE
 }
-
+}
 package Utilisateurs {
 
 
@@ -30,6 +32,7 @@ Class Utilisateur {
     email : string,
     phone : string,
     website : string,
+    PRIMARY KEY (nom, prenom, date_inscription)
 }
 Class Adhérent {
 
@@ -58,6 +61,7 @@ Class Fichier {
     chemin : string
     titre : string
     date_telechargement : date
+    PRIMARY KEY (chemin, date_telechargement)
 }
 
 Class Groupe {
@@ -75,7 +79,7 @@ Class Evt {
     date : string
 }
 
-note right of Evt 
+note top of Evt 
 La date s'inspire du format
 ISO 8601 comme dans les 
 spécifications du format vCal.
@@ -85,53 +89,76 @@ endnote
 
 package Archives {
     class archive_adhésion {
-        date_exp : date
-        montant : float
-        type : T_adhésion
+        date_exp : date {not null}
+        montant : float {not null}
+        type : T_adhésion {not null}
     }
     class archive_adhérent
     class archive_utilisateur {
-        nom : string
-        prenom : string
-        vnom : bool
-        vprenom : bool
-        vphoto : bool
-        date_inscription: date
-        date_derniere_connexion : date
+        nom : string {not null}
+        prenom : string {not null}
+        vnom : bool {not null}
+        vprenom : bool {not null}
+        vphoto : bool {not null}
+        date_inscription: date {not null}
+        date_derniere_connexion : date {not null}
+        PRIMARY KEY (nom, prenom, date_inscription)
     }
     class archive_donateur {
-        nom : string
+        nom : string 
         prenom : string
     }
     class archive_don {
-        date : date
-        montant : float
+        date : date {not null}
+        montant : float {not null}
     }
 }
 
+package Fédérations {
+    class Association {
+        nom : string {not null}
+        description : string {not null}
+        adresse : string {not null}
+        téléphone : string {not null}
+        email : string {not null}
+        date_creation : date {not null}
+    }
+    class Fédération
+}
 ' LIENS
 
 Fichier "0...1" -- "0..1" Utilisateur : a une photo
 Utilisateur <|-- Administrateur
+Groupe "*" -- "1...*" Utilisateur
+Adhésion "*" - "1" Association : adhère à
+Don "*" - "1" Association : verse à
+Utilisateur "*" -- "*" Association : appartient à
 
 ' Groupe
-Fichier "*" - "1" Groupe : a partagé un fichier\n(photos ou autres)
-URL "*" -- "1" Groupe  : partagé par
-Groupe "1" - "*" Evt : partagé par
-Utilisateur "1...*" -- "*" Groupe : appartient à
+Fichier "*" -----o "1" Groupe : a partagé un fichier\n(photos ou autres)
+Groupe "1" o- "*" URL : partagé par
+Evt "*" -o "1" Groupe : partagé par
 
 ' Utilisateur
 Adhérent -|> Utilisateur
 Adhésion "1...*" - "1" Adhérent : payé
-Utilisateur "0...1" - "0...1" Donateur : est un
+Donateur "0...1" - "0...1" Utilisateur : est un
 Donateur "1" - "1...*" Don : versé
 
 ' Archive
-Utilisateurs ..> Archives : archivé dans
+Archives <. Utilisateurs : archivé dans
 archive_adhérent -|> archive_utilisateur
 archive_adhésion "1...*" - "1" archive_adhérent : payé
 archive_utilisateur "0...1" - "0...1" archive_donateur : est un
 archive_donateur "1" - "1...*" archive_don : versé
 
+' Fédération
+Association "*" --* Fédération : constitue
+Fédération --|> Association
+
+' Administrateur
+Utilisateurs <.. Administrateur : gère
+Groupes <. Administrateur : gère
+Fédérations <. Administrateur : gère
 
 @enduml
