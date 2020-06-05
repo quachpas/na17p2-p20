@@ -1,0 +1,15 @@
+{
+  "titre": "Super Groupe 1",
+  "description": "Description du groupe 1",
+  "Fichiers": [1],
+  "URLs": [
+    { "id_url": 1, "url": "librecours.net/", "titre": "Libre Cours NA17" }
+  ],
+  "EVTs": [
+    {
+      "id_evt": 1,
+      "evt": "Entretien individuel",
+      "date": "20200529T123000+0200"
+    }
+  ]
+}
