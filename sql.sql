@@ -321,227 +321,6 @@ CREATE TABLE archive_don(
 	FOREIGN KEY(id_donateur) REFERENCES archive_donateur(id_donateur),
 	FOREIGN KEY(id_association) REFERENCES Association(id_association)
 );
-
-CREATE VIEW viewFédération AS
-SELECT
-	Fédération.id_federation,
-	Fédération.id_association,
-	Association.nom,
-	Association.description,
-	Association.adresse,
-	Association.telephone,
-	Association.email,
-	Association.date_creation
-FROM
-	Fédération
-	JOIN Association ON Fédération.id_association = Association.id_association;
-
-CREATE VIEW viewProfilUtilisateur AS
-SELECT
-	info_user.id_user,
-	info_user.nom,
-	info_user.prenom,
-	info_user.date_inscription,
-	info_user.date_derniere_connexion,
-	AD.type_adhésion,
-	AD.date_expiration,
-	info_user.chemin
-FROM
-	(
-		SELECT
-			U.id_user,
-			U.nom,
-			U.prenom,
-			U.date_inscription,
-			U.date_derniere_connexion,
-			F.chemin
-		FROM
-			Utilisateur AS U,
-			PP,
-			Fichier AS F
-		WHERE
-			U.id_user = PP.id_user
-			AND PP.id_photo = F.id_fichier
-	) AS info_user
-	LEFT JOIN Adhésion AS AD ON AD.id_user = info_user.id_user
-WHERE
-	AD.date_expiration > CURRENT_TIMESTAMP;
-
-CREATE VIEW viewAdherantsAsso AS
-SELECT
-	Association.id_association,
-	Adhésion.date_expiration,
-	Adhésion.type_adhésion,
-	Utilisateur.id_user,
-	Utilisateur.nom,
-	Utilisateur.prenom,
-	Utilisateur.date_inscription,
-	Utilisateur.date_derniere_connexion,
-	Utilisateur.adresse,
-	Utilisateur.email,
-	Utilisateur.phone,
-	Utilisateur.website,
-	Fichier.chemin
-FROM
-	Association
-	JOIN Adhésion ON Association.id_association = Adhésion.id_association
-	JOIN Utilisateur ON Adhésion.id_user = Utilisateur.id_user
-	JOIN PP ON PP.id_user = Adhésion.id_user
-	JOIN Fichier ON PP.id_photo = Fichier.id_fichier;
-
-CREATE VIEW viewAdhérantsActuels AS
-SELECT
-	U.id_user,
-	U.nom,
-	U.prenom,
-	F.chemin
-FROM
-	Utilisateur AS U,
-	Adhésion AS AD,
-	PP,
-	Fichier F
-WHERE
-	U.id_user = PP.id_user
-	AND PP.id_photo = F.id_fichier
-	AND U.id_user = AD.id_user
-	AND AD.date_expiration > CURRENT_TIMESTAMP;
-
-CREATE VIEW viewExAdhérants AS
-SELECT
-	user_info.id_user,
-	user_info.nom,
-	user_info.prenom,
-	user_info.date,
-	F.chemin
-FROM
-	(
-		SELECT
-			U.id_user,
-			U.nom,
-			U.prenom,
-			MAX(AD.date_expiration) AS date
-		FROM
-			Utilisateur AS U,
-			Adhésion AS AD
-		WHERE
-			U.id_user = AD.id_user
-			AND AD.date_expiration < CURRENT_TIMESTAMP
-		GROUP BY
-			U.id_user
-	) AS user_info,
-	PP,
-	Fichier AS F
-WHERE
-	user_info.id_user = PP.id_user
-	AND PP.id_photo = F.id_fichier;
-
-CREATE VIEW viewAdhésionExpirant AS
-SELECT
-	user_info.id_user,
-	user_info.nom,
-	user_info.prenom,
-	F.chemin
-FROM
-	(
-		SELECT
-			U.id_user,
-			U.nom,
-			U.prenom,
-			(date_expiration - '1 month' :: INTERVAL) AS limite
-		FROM
-			Utilisateur AS U,
-			Adhésion AS AD
-		WHERE
-			U.id_user = AD.id_user
-	) AS user_info,
-	PP,
-	Fichier AS F
-WHERE
-	user_info.id_user = PP.id_user
-	AND F.id_fichier = PP.id_photo
-	AND user_info.limite < CURRENT_TIMESTAMP;
-
-CREATE VIEW viewDonateursDons AS
-SELECT
-	Donateur_info.nom AS donateur_nom,
-	Donateur_info.prenom AS donateur_prenom,
-	Utilisateur.nom,
-	Utilisateur.prenom,
-	Don.date,
-	Don.montant
-FROM
-	Donateur
-	LEFT JOIN Donateur_utilisateur ON Donateur.id_donateur = Donateur_utilisateur.id_donateur
-	LEFT JOIN Donateur_info ON Donateur.id_donateur = Donateur_info.id_donateur
-	LEFT JOIN Utilisateur ON Donateur_utilisateur.id_user = Utilisateur.id_user
-	LEFT JOIN Don ON Donateur.id_donateur = Don.id_donateur;
-
-CREATE VIEW viewDonateursUtilisateurs AS
-SELECT
-	Donateur_info.nom AS donateur_nom,
-	Donateur_info.prenom AS donateur_prenom,
-	Utilisateur.nom,
-	Utilisateur.prenom
-FROM
-	Donateur
-	JOIN Donateur_utilisateur ON Donateur.id_donateur = Donateur_utilisateur.id_donateur
-	JOIN Donateur_info ON Donateur.id_donateur = Donateur_info.id_donateur
-	JOIN Utilisateur ON Utilisateur.id_user = Donateur_utilisateur.id_user;
-
-CREATE VIEW viewHistoriqueAdhésion AS
-SELECT
-	U.id_user,
-	AD.date_expiration,
-	AD.montant,
-	AD.type_adhésion
-FROM
-	Adhésion as AD
-	JOIN Utilisateur as U ON U.id_user = AD.id_user
-WHERE
-	AD.date_expiration < CURRENT_TIMESTAMP;
-
-CREATE VIEW viewMembreGroupe AS
-SELECT
-	G.id_groupe,
-	G.titre,
-	U.id_user,
-	U.nom,
-	U.prenom,
-	F.chemin
-FROM
-	Groupe AS G,
-	Membre_groupe AS MG,
-	Utilisateur AS U,
-	PP,
-	Fichier AS F
-WHERE
-	G.id_groupe = MG.id_groupe
-	AND U.id_user = MG.id_user
-	AND MG.id_user = PP.id_user
-	AND PP.id_photo = F.id_fichier;
-
--- CREATE VIEW viewInfoGroupe AS
--- 	SELECT G.id_groupe, G.titre AS nom_groupe, G.description, F.chemin, F.titre AS nom_image, URL.URL, URL.titre AS nom_url, E.evt, E.date
--- 	FROM Groupe AS G, Fichier AS F, Fichier_groupe as FG, URL_groupe as UG, URL, Evt_groupe as EG, Evt AS E
--- 	WHERE G.id_groupe = FG.id_groupe AND F.id_fichier = FG.id_photo AND G.id_groupe = UG.id_groupe AND URL.id_url = UG.id_url AND G.id_groupe = EG.id_groupe AND E.id_evt = EG.id_evt
--- ;
-SELECT
-	G.id_groupe,
-	G.infos ->> 'titre' AS titre_groupe,
-	G.infos ->> 'description' AS description_groupe,
-	id_fichier,
-	url ->> 'id_url' AS id_url,
-	url ->> 'url' AS url,
-	url ->> 'titre' AS titre_url,
-	evt ->> 'id_evt' AS id_evt,
-	evt ->> 'evt' AS evt,
-	evt ->> 'date' AS date_evt
-FROM
-	Groupe AS G
-	CROSS JOIN json_array_elements(G.fichiers -> 'fichiers') AS id_fichier
-	CROSS JOIN json_array_elements(G.urls -> 'url') AS url
-	CROSS JOIN json_array_elements(G.evts -> 'EVTs') AS evt;
-
 INSERT INTO
 	Association(
 		nom,
@@ -906,21 +685,6 @@ VALUES
 -- INSERT INTO Groupe (id_groupe, titre, description)
 -- VALUES ('1', 'Super Groupe 1', 'Description du groupe 1');
 INSERT INTO
-	Membre_groupe (id_groupe, id_user)
-VALUES
-	(1, 1);
-
--- INSERT INTO Fichier_groupe(id_photo, id_groupe)
--- VALUES (11, 1);
--- INSERT INTO URL(id_url, url, titre)
--- VALUES (1, 'librecours.net/', 'Libre Cours NA17');
--- INSERT INTO URL_groupe(id_url, id_groupe)
--- VALUES (1 ,1);
--- INSERT INTO Evt(id_evt, evt, date)
--- VALUES (1, 'Entretien individuel', '20200529T123000+0200');
--- INSERT INTO Evt_groupe(id_evt, id_groupe)
--- VALUES (1, 1);
-INSERT INTO
 	Groupe (id_groupe, infos, fichiers, urls, evts)
 VALUES
 	(
@@ -940,7 +704,264 @@ VALUES
                      "evt": "Entretien individuel",
                      "date": "20200529T123000+0200"}]}'
 	);
+INSERT INTO
+	Membre_groupe (id_groupe, id_user)
+VALUES
+	(1, 1);
 
+-- INSERT INTO Fichier_groupe(id_photo, id_groupe)
+-- VALUES (11, 1);
+-- INSERT INTO URL(id_url, url, titre)
+-- VALUES (1, 'librecours.net/', 'Libre Cours NA17');
+-- INSERT INTO URL_groupe(id_url, id_groupe)
+-- VALUES (1 ,1);
+-- INSERT INTO Evt(id_evt, evt, date)
+-- VALUES (1, 'Entretien individuel', '20200529T123000+0200');
+-- INSERT INTO Evt_groupe(id_evt, id_groupe)
+-- VALUES (1, 1);
+
+
+CREATE VIEW viewFédération AS
+SELECT
+	Fédération.id_federation,
+	Fédération.id_association,
+	Association.nom,
+	Association.description,
+	Association.adresse,
+	Association.telephone,
+	Association.email,
+	Association.date_creation
+FROM
+	Fédération
+	JOIN Association ON Fédération.id_association = Association.id_association;
+
+CREATE VIEW viewProfilUtilisateur AS
+SELECT
+	info_user.id_user,
+	info_user.nom,
+	info_user.prenom,
+	info_user.date_inscription,
+	info_user.date_derniere_connexion,
+	AD.type_adhésion,
+	AD.date_expiration,
+	info_user.chemin
+FROM
+	(
+		SELECT
+			U.id_user,
+			U.nom,
+			U.prenom,
+			U.date_inscription,
+			U.date_derniere_connexion,
+			F.chemin
+		FROM
+			Utilisateur AS U,
+			PP,
+			Fichier AS F
+		WHERE
+			U.id_user = PP.id_user
+			AND PP.id_photo = F.id_fichier
+	) AS info_user
+	LEFT JOIN Adhésion AS AD ON AD.id_user = info_user.id_user
+WHERE
+	AD.date_expiration > CURRENT_TIMESTAMP;
+
+CREATE VIEW viewAdherantsAsso AS
+SELECT
+	Association.id_association,
+	Adhésion.date_expiration,
+	Adhésion.type_adhésion,
+	Utilisateur.id_user,
+	Utilisateur.nom,
+	Utilisateur.prenom,
+	Utilisateur.date_inscription,
+	Utilisateur.date_derniere_connexion,
+	Utilisateur.adresse,
+	Utilisateur.email,
+	Utilisateur.phone,
+	Utilisateur.website,
+	Fichier.chemin
+FROM
+	Association
+	JOIN Adhésion ON Association.id_association = Adhésion.id_association
+	JOIN Utilisateur ON Adhésion.id_user = Utilisateur.id_user
+	JOIN PP ON PP.id_user = Adhésion.id_user
+	JOIN Fichier ON PP.id_photo = Fichier.id_fichier;
+
+CREATE VIEW viewAdhérantsActuels AS
+SELECT
+	U.id_user,
+	U.nom,
+	U.prenom,
+	F.chemin
+FROM
+	Utilisateur AS U,
+	Adhésion AS AD,
+	PP,
+	Fichier F
+WHERE
+	U.id_user = PP.id_user
+	AND PP.id_photo = F.id_fichier
+	AND U.id_user = AD.id_user
+	AND AD.date_expiration > CURRENT_TIMESTAMP;
+
+CREATE VIEW viewExAdhérants AS
+SELECT
+	user_info.id_user,
+	user_info.nom,
+	user_info.prenom,
+	user_info.date,
+	F.chemin
+FROM
+	(
+		SELECT
+			U.id_user,
+			U.nom,
+			U.prenom,
+			MAX(AD.date_expiration) AS date
+		FROM
+			Utilisateur AS U,
+			Adhésion AS AD
+		WHERE
+			U.id_user = AD.id_user
+			AND AD.date_expiration < CURRENT_TIMESTAMP
+		GROUP BY
+			U.id_user
+	) AS user_info,
+	PP,
+	Fichier AS F
+WHERE
+	user_info.id_user = PP.id_user
+	AND PP.id_photo = F.id_fichier;
+
+CREATE VIEW viewAdhésionExpirant AS
+SELECT
+	user_info.id_user,
+	user_info.nom,
+	user_info.prenom,
+	F.chemin
+FROM
+	(
+		SELECT
+			U.id_user,
+			U.nom,
+			U.prenom,
+			(date_expiration - '1 month' :: INTERVAL) AS limite
+		FROM
+			Utilisateur AS U,
+			Adhésion AS AD
+		WHERE
+			U.id_user = AD.id_user
+	) AS user_info,
+	PP,
+	Fichier AS F
+WHERE
+	user_info.id_user = PP.id_user
+	AND F.id_fichier = PP.id_photo
+	AND user_info.limite < CURRENT_TIMESTAMP;
+
+CREATE VIEW viewDonateursDons AS
+SELECT
+	Donateur_info.nom AS donateur_nom,
+	Donateur_info.prenom AS donateur_prenom,
+	Utilisateur.nom,
+	Utilisateur.prenom,
+	Don.date,
+	Don.montant
+FROM
+	Donateur
+	LEFT JOIN Donateur_utilisateur ON Donateur.id_donateur = Donateur_utilisateur.id_donateur
+	LEFT JOIN Donateur_info ON Donateur.id_donateur = Donateur_info.id_donateur
+	LEFT JOIN Utilisateur ON Donateur_utilisateur.id_user = Utilisateur.id_user
+	LEFT JOIN Don ON Donateur.id_donateur = Don.id_donateur;
+
+CREATE VIEW viewDonateursUtilisateurs AS
+SELECT
+	Donateur_info.nom AS donateur_nom,
+	Donateur_info.prenom AS donateur_prenom,
+	Utilisateur.nom,
+	Utilisateur.prenom
+FROM
+	Donateur
+	JOIN Donateur_utilisateur ON Donateur.id_donateur = Donateur_utilisateur.id_donateur
+	JOIN Donateur_info ON Donateur.id_donateur = Donateur_info.id_donateur
+	JOIN Utilisateur ON Utilisateur.id_user = Donateur_utilisateur.id_user;
+
+CREATE VIEW viewHistoriqueAdhésion AS
+SELECT
+	U.id_user,
+	AD.date_expiration,
+	AD.montant,
+	AD.type_adhésion
+FROM
+	Adhésion as AD
+	JOIN Utilisateur as U ON U.id_user = AD.id_user
+WHERE
+	AD.date_expiration < CURRENT_TIMESTAMP;
+
+CREATE VIEW viewMembreGroupe AS
+SELECT
+	G.id_groupe,
+	G.infos ->> 'titre' AS titre_groupe,
+	G.infos ->> 'description' AS description_groupe,
+	U.id_user,
+	U.nom,
+	U.prenom,
+	F.chemin
+FROM
+	Groupe AS G,
+	Membre_groupe AS MG,
+	Utilisateur AS U,
+	PP,
+	Fichier AS F
+WHERE
+	G.id_groupe = MG.id_groupe
+	AND U.id_user = MG.id_user
+	AND MG.id_user = PP.id_user
+	AND PP.id_photo = F.id_fichier;
+
+-- CREATE VIEW viewInfoGroupe AS
+-- 	SELECT G.id_groupe, G.titre AS nom_groupe, G.description, F.chemin, F.titre AS nom_image, URL.URL, URL.titre AS nom_url, E.evt, E.date
+-- 	FROM Groupe AS G, Fichier AS F, Fichier_groupe as FG, URL_groupe as UG, URL, Evt_groupe as EG, Evt AS E
+-- 	WHERE G.id_groupe = FG.id_groupe AND F.id_fichier = FG.id_photo AND G.id_groupe = UG.id_groupe AND URL.id_url = UG.id_url AND G.id_groupe = EG.id_groupe AND E.id_evt = EG.id_evt
+-- ;
+CREATE VIEW viewURLGroupe AS
+SELECT
+	G.id_groupe,
+	G.infos ->> 'titre' AS titre_groupe,
+	G.infos ->> 'description' AS description_groupe,
+	url ->> 'id_url' AS id_url,
+	url ->> 'url' AS url,
+	url ->> 'titre' AS titre_url
+FROM
+	Groupe AS G
+	CROSS JOIN json_array_elements(G.urls -> 'url') AS url;
+CREATE VIEW viewEvtGroupe AS
+SELECT
+	G.id_groupe,
+	G.infos ->> 'titre' AS titre_groupe,
+	G.infos ->> 'description' AS description_groupe,
+	evt ->> 'id_evt' AS id_evt,
+	evt ->> 'evt' AS evt,
+	evt ->> 'date' AS date_evt
+FROM
+	Groupe AS G
+	CROSS JOIN json_array_elements(G.evts -> 'EVTs') AS evt;
+	--CREATE VIEW viewFichierGroupe AS
+SELECT
+	G.id_groupe,
+	G.infos ->> 'titre' AS titre_groupe,
+	G.infos ->> 'description' AS description_groupe,
+	id_fichier::TEXT::BIGINT AS id_fichier_1,
+	Fichier.chemin,
+	Fichier.titre,
+	Fichier.date_telechargement
+FROM
+	(SELECT * FROM
+	Groupe AS G
+	CROSS JOIN json_array_elements(G.fichiers -> 'fichiers') AS id_fichier) AS G
+	JOIN Fichier ON G.value::TEXT::BIGINT = Fichier.id_fichier;
+--SELECT * FROM Groupe;
 -- Les données de tests en archive sont identiques.
 -- Mêmes vues qu'en haut
 --CREATE VIEW viewArchiveProfilUtilisateur;
