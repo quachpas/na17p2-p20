@@ -201,12 +201,6 @@ CREATE TABLE PP(
 	FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user)
 );
 
--- CREATE TABLE Groupe(
--- 	id_groupe BIGSERIAL,
--- 	titre VARCHAR(50),
--- 	description TEXT,
--- 	PRIMARY KEY (id_groupe)
--- );
 CREATE TABLE Groupe(
 	id_groupe BIGSERIAL,
 	infos JSON NOT NULL,
@@ -224,37 +218,6 @@ CREATE TABLE Membre_groupe(
 	FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user)
 );
 
--- CREATE TABLE Fichier_groupe(
--- 	id_photo BIGINT,
--- 	id_groupe BIGINT,
--- 	PRIMARY KEY (id_photo, id_groupe),
--- 	FOREIGN KEY (id_groupe) REFERENCES Fichier(id_fichier),
--- 	FOREIGN KEY (id_groupe) REFERENCES Groupe(id_groupe)
--- );
--- CREATE TABLE URL(
--- 	id_url BIGSERIAL,
--- 	url VARCHAR(255) NOT NULL,
--- 	titre VARCHAR(50) NOT NULL,
--- 	PRIMARY KEY (id_url)
--- );
--- CREATE TABLE URL_groupe(
--- 	id_url BIGINT,
--- 	id_groupe BIGINT,
--- 	PRIMARY KEY (id_url, id_groupe),
--- 	FOREIGN KEY (id_url) REFERENCES URL(id_url),
--- 	FOREIGN KEY (id_groupe) REFERENCES Groupe(id_groupe)
--- );
--- CREATE TABLE Evt(
--- 	id_evt BIGSERIAL,
--- 	evt VARCHAR(50) NOT NULL,
--- 	date VARCHAR(255) NOT NULL,
--- 	PRIMARY KEY (id_evt)
--- );
--- CREATE TABLE Evt_groupe(
--- 	id_evt BIGSERIAL,
--- 	id_groupe BIGSERIAL,
--- 	PRIMARY KEY(id_evt, id_groupe)
--- );
 CREATE TABLE archive_utilisateur(
 	id_user BIGSERIAL,
 	nom VARCHAR(30) NOT NULL,
@@ -321,6 +284,7 @@ CREATE TABLE archive_don(
 	FOREIGN KEY(id_donateur) REFERENCES archive_donateur(id_donateur),
 	FOREIGN KEY(id_association) REFERENCES Association(id_association)
 );
+
 INSERT INTO
 	Association(
 		nom,
@@ -682,8 +646,6 @@ VALUES
 	(9, 9),
 	(10, 10);
 
--- INSERT INTO Groupe (id_groupe, titre, description)
--- VALUES ('1', 'Super Groupe 1', 'Description du groupe 1');
 INSERT INTO
 	Groupe (id_groupe, infos, fichiers, urls, evts)
 VALUES
@@ -704,22 +666,11 @@ VALUES
                      "evt": "Entretien individuel",
                      "date": "20200529T123000+0200"}]}'
 	);
+
 INSERT INTO
 	Membre_groupe (id_groupe, id_user)
 VALUES
 	(1, 1);
-
--- INSERT INTO Fichier_groupe(id_photo, id_groupe)
--- VALUES (11, 1);
--- INSERT INTO URL(id_url, url, titre)
--- VALUES (1, 'librecours.net/', 'Libre Cours NA17');
--- INSERT INTO URL_groupe(id_url, id_groupe)
--- VALUES (1 ,1);
--- INSERT INTO Evt(id_evt, evt, date)
--- VALUES (1, 'Entretien individuel', '20200529T123000+0200');
--- INSERT INTO Evt_groupe(id_evt, id_groupe)
--- VALUES (1, 1);
-
 
 CREATE VIEW viewFédération AS
 SELECT
@@ -920,11 +871,6 @@ WHERE
 	AND MG.id_user = PP.id_user
 	AND PP.id_photo = F.id_fichier;
 
--- CREATE VIEW viewInfoGroupe AS
--- 	SELECT G.id_groupe, G.titre AS nom_groupe, G.description, F.chemin, F.titre AS nom_image, URL.URL, URL.titre AS nom_url, E.evt, E.date
--- 	FROM Groupe AS G, Fichier AS F, Fichier_groupe as FG, URL_groupe as UG, URL, Evt_groupe as EG, Evt AS E
--- 	WHERE G.id_groupe = FG.id_groupe AND F.id_fichier = FG.id_photo AND G.id_groupe = UG.id_groupe AND URL.id_url = UG.id_url AND G.id_groupe = EG.id_groupe AND E.id_evt = EG.id_evt
--- ;
 CREATE VIEW viewURLGroupe AS
 SELECT
 	G.id_groupe,
@@ -936,6 +882,7 @@ SELECT
 FROM
 	Groupe AS G
 	CROSS JOIN json_array_elements(G.urls -> 'url') AS url;
+
 CREATE VIEW viewEvtGroupe AS
 SELECT
 	G.id_groupe,
@@ -947,21 +894,26 @@ SELECT
 FROM
 	Groupe AS G
 	CROSS JOIN json_array_elements(G.evts -> 'EVTs') AS evt;
-	--CREATE VIEW viewFichierGroupe AS
+
+CREATE VIEW viewFichierGroupe AS
 SELECT
 	G.id_groupe,
 	G.infos ->> 'titre' AS titre_groupe,
 	G.infos ->> 'description' AS description_groupe,
-	id_fichier::TEXT::BIGINT AS id_fichier_1,
+	id_fichier :: TEXT :: BIGINT AS id_fichier_1,
 	Fichier.chemin,
 	Fichier.titre,
 	Fichier.date_telechargement
 FROM
-	(SELECT * FROM
-	Groupe AS G
-	CROSS JOIN json_array_elements(G.fichiers -> 'fichiers') AS id_fichier) AS G
-	JOIN Fichier ON G.value::TEXT::BIGINT = Fichier.id_fichier;
---SELECT * FROM Groupe;
+	(
+		SELECT
+			*
+		FROM
+			Groupe AS G
+			CROSS JOIN json_array_elements(G.fichiers -> 'fichiers') AS id_fichier
+	) AS G
+	JOIN Fichier ON G.value :: TEXT :: BIGINT = Fichier.id_fichier;
+
 -- Les données de tests en archive sont identiques.
 -- Mêmes vues qu'en haut
 --CREATE VIEW viewArchiveProfilUtilisateur;

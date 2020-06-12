@@ -25,3 +25,19 @@ Les informations concernant les groupes sont périssables (elle peuvent être d�
 - page d'administration permettant de gérer les groupes
 - page d'accès aux archives
 - page d'export permettant aux administrateurs d'exporter la liste des adhérents dans un format CSV ou un format vCard.
+
+# Webapp exemple 
+Un exemple Next.js de communication avec une BDD PGSQL à l'aide de [Supabase](https://supabase.io/docs/about) 
+L'exemple utilisé provient de https://github.com/supabase/realtime/tree/master/examples/next-js.
+L'exemple a été adapté au projet.
+
+Dépendances :
+- Docker
+- npm (Node.js)
+Etapes d'installation :
+1. `npm install`: installation des dépendances node
+2.  `npm run build`: pour compiler l'app
+3.  `docker-compose up` : démarrage du serveur en local au port 4000
+4.  `npm start` : démarrage du serveur web au port 3000
+5.  http://localhost:3000 : la "webapp"
+
