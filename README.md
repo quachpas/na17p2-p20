@@ -28,16 +28,17 @@ Les informations concernant les groupes sont périssables (elle peuvent être d�
 
 # Webapp exemple 
 Un exemple Next.js de communication avec une BDD PGSQL à l'aide de [Supabase](https://supabase.io/docs/about) 
+
 L'exemple utilisé provient de https://github.com/supabase/realtime/tree/master/examples/next-js.
-L'exemple a été adapté au projet.
+L'exemple a été adapté au projet en partie.
 
 Dépendances :
-- Docker
+- Docker : il faut activer le partage de fichier (*file sharing*) dans le dossier où on lance `docker-compose`.
 - npm (Node.js)
 Etapes d'installation :
 1. `npm install`: installation des dépendances node
 2.  `npm run build`: pour compiler l'app
-3.  `docker-compose up` : démarrage du serveur en local au port 4000
+3.  `docker-compose up` : démarrage du serveur en local au port 4000. *Attention, téléchargement lourd ! ~2Go*.
 4.  `npm start` : démarrage du serveur web au port 3000
 5.  http://localhost:3000 : la "webapp"
 

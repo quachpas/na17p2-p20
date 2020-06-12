@@ -1,5 +1,3 @@
-CREATE ROLE Pasca WITH PASSWORD 'postgres' CREATEDB CREATEROLE;
-
 ALTER SYSTEM
 SET
 	wal_level = 'logical';
@@ -17,45 +15,45 @@ CREATE SCHEMA IF NOT EXISTS na17p2;
 SET
 	search_path TO na17p2;
 
-DROP TYPE IF EXISTS T_adhésion CASCADE;
+DROP TYPE IF EXISTS t_adhésion CASCADE;
 
-DROP TABLE IF EXISTS Association CASCADE;
+DROP TABLE IF EXISTS association CASCADE;
 
-DROP TABLE IF EXISTS Fédération CASCADE;
+DROP TABLE IF EXISTS fédération CASCADE;
 
-DROP TABLE IF EXISTS Roles CASCADE;
+DROP TABLE IF EXISTS roles CASCADE;
 
-DROP TABLE IF EXISTS Utilisateur CASCADE;
+DROP TABLE IF EXISTS utilisateur CASCADE;
 
-DROP TABLE IF EXISTS Role_utilisateur CASCADE;
+DROP TABLE IF EXISTS role_utilisateur CASCADE;
 
-DROP TABLE IF EXISTS Adhésion CASCADE;
+DROP TABLE IF EXISTS adhésion CASCADE;
 
-DROP TABLE IF EXISTS Donateur CASCADE;
+DROP TABLE IF EXISTS donateur CASCADE;
 
-DROP TABLE IF EXISTS Donateur_info CASCADE;
+DROP TABLE IF EXISTS donateur_info CASCADE;
 
-DROP TABLE IF EXISTS Donateur_utilisateur CASCADE;
+DROP TABLE IF EXISTS donateur_utilisateur CASCADE;
 
-DROP TABLE IF EXISTS Don CASCADE;
+DROP TABLE IF EXISTS don CASCADE;
 
-DROP TABLE IF EXISTS Fichier CASCADE;
+DROP TABLE IF EXISTS fichier CASCADE;
 
-DROP TABLE IF EXISTS PP CASCADE;
+DROP TABLE IF EXISTS pp CASCADE;
 
-DROP TABLE IF EXISTS Groupe CASCADE;
+DROP TABLE IF EXISTS groupe CASCADE;
 
-DROP TABLE IF EXISTS Membre_groupe CASCADE;
+DROP TABLE IF EXISTS membre_groupe CASCADE;
 
-DROP TABLE IF EXISTS Fichier_groupe CASCADE;
+DROP TABLE IF EXISTS fichier_groupe CASCADE;
 
 DROP TABLE IF EXISTS URL CASCADE;
 
-DROP TABLE IF EXISTS URL_groupe CASCADE;
+DROP TABLE IF EXISTS url_groupe CASCADE;
 
-DROP TABLE IF EXISTS Evt CASCADE;
+DROP TABLE IF EXISTS evt CASCADE;
 
-DROP TABLE IF EXISTS Evt_groupe CASCADE;
+DROP TABLE IF EXISTS evt_groupe CASCADE;
 
 DROP TABLE IF EXISTS archive_utilisateur CASCADE;
 
@@ -103,9 +101,9 @@ DROP VIEW IF EXISTS "viewArchiveDonateursDons" CASCADE;
 
 DROP VIEW IF EXISTS "viewArchiveDonateursUtilisateurs" CASCADE;
 
-CREATE TYPE T_adhésion AS ENUM ('Bronze', 'Argent', 'Or');
+CREATE TYPE t_adhésion AS ENUM ('Bronze', 'Argent', 'Or');
 
-CREATE TABLE Association(
+CREATE TABLE association(
 	id_association BIGSERIAL,
 	nom VARCHAR(30) NOT NULL,
 	description TEXT NOT NULL,
@@ -116,22 +114,22 @@ CREATE TABLE Association(
 	PRIMARY KEY (id_association)
 );
 
-CREATE TABLE Fédération(
+CREATE TABLE fédération(
 	id_federation BIGINT,
 	id_association BIGINT,
 	PRIMARY KEY (id_federation, id_association),
-	FOREIGN KEY (id_federation) REFERENCES Association(id_association),
-	FOREIGN KEY (id_association) REFERENCES Association(id_association),
+	FOREIGN KEY (id_federation) REFERENCES association(id_association),
+	FOREIGN KEY (id_association) REFERENCES association(id_association),
 	CHECK (id_federation <> id_association)
 );
 
-CREATE TABLE Roles(
+CREATE TABLE roles(
 	id_role BIGSERIAL,
 	nom_role VARCHAR(50),
 	PRIMARY KEY (id_role)
 );
 
-CREATE TABLE Utilisateur(
+CREATE TABLE utilisateur(
 	id_user BIGSERIAL,
 	nom VARCHAR(30) NOT NULL,
 	prenom VARCHAR(30) NOT NULL,
@@ -148,58 +146,58 @@ CREATE TABLE Utilisateur(
 	PRIMARY KEY (id_user)
 );
 
-CREATE TABLE Role_utilisateur(
+CREATE TABLE role_utilisateur(
 	id_role BIGINT,
 	id_user BIGINT,
 	PRIMARY KEY (id_role, id_user),
-	FOREIGN KEY (id_role) REFERENCES Roles(id_role),
-	FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user)
+	FOREIGN KEY (id_role) REFERENCES roles(id_role),
+	FOREIGN KEY (id_user) REFERENCES utilisateur(id_user)
 );
 
-CREATE TABLE Adhésion(
+CREATE TABLE adhésion(
 	id_adhésion BIGSERIAL,
 	id_user BIGINT,
 	date_expiration DATE,
 	montant FLOAT NOT NULL,
-	type_adhésion T_adhésion NOT NULL,
+	type_adhésion t_adhésion NOT NULL,
 	id_association BIGINT,
 	PRIMARY KEY (id_adhésion),
-	FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user),
-	FOREIGN KEY (id_association) REFERENCES Association(id_association)
+	FOREIGN KEY (id_user) REFERENCES utilisateur(id_user),
+	FOREIGN KEY (id_association) REFERENCES association(id_association)
 );
 
-CREATE TABLE Donateur(
+CREATE TABLE donateur(
 	id_donateur BIGSERIAL,
 	PRIMARY KEY (id_donateur)
 );
 
-CREATE TABLE Donateur_info(
+CREATE TABLE donateur_info(
 	id_donateur BIGINT,
 	nom VARCHAR(30),
 	prenom VARCHAR(30),
 	PRIMARY KEY (id_donateur),
-	FOREIGN KEY (id_donateur) REFERENCES Donateur(id_donateur)
+	FOREIGN KEY (id_donateur) REFERENCES donateur(id_donateur)
 );
 
-CREATE TABLE Donateur_utilisateur(
+CREATE TABLE donateur_utilisateur(
 	id_donateur BIGINT,
 	id_user BIGINT UNIQUE,
 	PRIMARY KEY (id_donateur, id_user),
-	FOREIGN KEY (id_donateur) REFERENCES Donateur(id_donateur),
-	FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user)
+	FOREIGN KEY (id_donateur) REFERENCES donateur(id_donateur),
+	FOREIGN KEY (id_user) REFERENCES utilisateur(id_user)
 );
 
-CREATE TABLE Don(
+CREATE TABLE don(
 	id_don BIGSERIAL,
 	date DATE NOT NULL,
 	montant FLOAT NOT NULL,
 	id_donateur BIGINT,
 	id_association BIGINT,
-	FOREIGN KEY(id_donateur) REFERENCES Donateur(id_donateur),
-	FOREIGN KEY(id_association) REFERENCES Association(id_association)
+	FOREIGN KEY(id_donateur) REFERENCES donateur(id_donateur),
+	FOREIGN KEY(id_association) REFERENCES association(id_association)
 );
 
-CREATE TABLE Fichier(
+CREATE TABLE fichier(
 	id_fichier BIGSERIAL,
 	chemin VARCHAR(255) NOT NULL,
 	titre VARCHAR(50) NOT NULL,
@@ -207,35 +205,35 @@ CREATE TABLE Fichier(
 	PRIMARY KEY (id_fichier)
 );
 
-CREATE TABLE PP(
+CREATE TABLE pp(
 	id_photo BIGINT,
 	id_user BIGINT,
 	PRIMARY KEY (id_photo, id_user),
-	FOREIGN KEY (id_photo) REFERENCES Fichier(id_fichier),
-	FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user)
+	FOREIGN KEY (id_photo) REFERENCES fichier(id_fichier),
+	FOREIGN KEY (id_user) REFERENCES utilisateur(id_user)
 );
 
-CREATE TABLE Groupe(
+CREATE TABLE groupe(
 	id_groupe BIGSERIAL,
 	titre VARCHAR(50),
 	description TEXT,
 	PRIMARY KEY (id_groupe)
 );
 
-CREATE TABLE Membre_groupe(
+CREATE TABLE membre_groupe(
 	id_groupe BIGINT,
 	id_user BIGINT,
 	PRIMARY KEY (id_groupe, id_user),
-	FOREIGN KEY (id_groupe) REFERENCES Groupe(id_groupe),
-	FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user)
+	FOREIGN KEY (id_groupe) REFERENCES groupe(id_groupe),
+	FOREIGN KEY (id_user) REFERENCES utilisateur(id_user)
 );
 
-CREATE TABLE Fichier_groupe(
+CREATE TABLE fichier_groupe(
 	id_photo BIGINT,
 	id_groupe BIGINT,
 	PRIMARY KEY (id_photo, id_groupe),
-	FOREIGN KEY (id_groupe) REFERENCES Fichier(id_fichier),
-	FOREIGN KEY (id_groupe) REFERENCES Groupe(id_groupe)
+	FOREIGN KEY (id_groupe) REFERENCES fichier(id_fichier),
+	FOREIGN KEY (id_groupe) REFERENCES groupe(id_groupe)
 );
 
 CREATE TABLE URL(
@@ -245,22 +243,22 @@ CREATE TABLE URL(
 	PRIMARY KEY (id_url)
 );
 
-CREATE TABLE URL_groupe(
+CREATE TABLE url_groupe(
 	id_url BIGINT,
 	id_groupe BIGINT,
 	PRIMARY KEY (id_url, id_groupe),
 	FOREIGN KEY (id_url) REFERENCES URL(id_url),
-	FOREIGN KEY (id_groupe) REFERENCES Groupe(id_groupe)
+	FOREIGN KEY (id_groupe) REFERENCES groupe(id_groupe)
 );
 
-CREATE TABLE Evt(
+CREATE TABLE evt(
 	id_evt BIGSERIAL,
 	evt VARCHAR(50) NOT NULL,
 	date VARCHAR(255) NOT NULL,
 	PRIMARY KEY (id_evt)
 );
 
-CREATE TABLE Evt_groupe(
+CREATE TABLE evt_groupe(
 	id_evt BIGSERIAL,
 	id_groupe BIGSERIAL,
 	PRIMARY KEY(id_evt, id_groupe)
@@ -287,8 +285,8 @@ CREATE TABLE archive_role_utilisateur(
 	id_role BIGINT,
 	id_user BIGINT,
 	PRIMARY KEY (id_role, id_user),
-	FOREIGN KEY (id_role) REFERENCES Roles(id_role),
-	FOREIGN KEY (id_user) REFERENCES Utilisateur(id_user)
+	FOREIGN KEY (id_role) REFERENCES roles(id_role),
+	FOREIGN KEY (id_user) REFERENCES utilisateur(id_user)
 );
 
 CREATE TABLE archive_adhésion(
@@ -296,10 +294,10 @@ CREATE TABLE archive_adhésion(
 	id_user BIGSERIAL,
 	date_expiration DATE,
 	montant FLOAT NOT NULL,
-	type_adhésion T_adhésion NOT NULL,
+	type_adhésion t_adhésion NOT NULL,
 	id_association BIGINT,
 	PRIMARY KEY (id_adhésion),
-	FOREIGN KEY (id_association) REFERENCES Association(id_association)
+	FOREIGN KEY (id_association) REFERENCES association(id_association)
 );
 
 CREATE TABLE archive_donateur(
@@ -330,11 +328,11 @@ CREATE TABLE archive_don(
 	id_donateur BIGINT,
 	id_association BIGINT,
 	FOREIGN KEY(id_donateur) REFERENCES archive_donateur(id_donateur),
-	FOREIGN KEY(id_association) REFERENCES Association(id_association)
+	FOREIGN KEY(id_association) REFERENCES association(id_association)
 );
 
 INSERT INTO
-	Association(
+	association(
 		nom,
 		description,
 		adresse,
@@ -369,13 +367,13 @@ VALUES
 	);
 
 INSERT INTO
-	Fédération(id_federation, id_association)
+	fédération(id_federation, id_association)
 VALUES
 	(1, 2),
 	(1, 3);
 
 INSERT INTO
-	Utilisateur (
+	utilisateur (
 		id_user,
 		nom,
 		prenom,
@@ -543,13 +541,13 @@ VALUES
 	);
 
 INSERT INTO
-	Roles (nom_role)
+	roles (nom_role)
 VALUES
-	('Utilisateur'),
-	('Administrateur');
+	('utilisateur'),
+	('administrateur');
 
 INSERT INTO
-	Role_utilisateur (id_role, id_user)
+	role_utilisateur (id_role, id_user)
 VALUES
 	(2, 1),
 	(1, 2),
@@ -563,7 +561,7 @@ VALUES
 	(1, 10);
 
 INSERT INTO
-	Adhésion (
+	adhésion (
 		id_user,
 		date_expiration,
 		montant,
@@ -583,7 +581,7 @@ VALUES
 	(10, '2020-02-17 14:13:39', 40.0, 'Argent', 3);
 
 INSERT INTO
-	Donateur (id_donateur)
+	donateur (id_donateur)
 VALUES
 	(1),
 	(2),
@@ -591,19 +589,19 @@ VALUES
 	(4);
 
 INSERT INTO
-	Donateur_info (id_donateur, nom, prenom)
+	donateur_info (id_donateur, nom, prenom)
 VALUES
 	(1, 'Jesus', 'Christ');
 
 INSERT INTO
-	Donateur_utilisateur(id_donateur, id_user)
+	donateur_utilisateur(id_donateur, id_user)
 VALUES
 	(2, 1),
 	(3, 2),
 	(4, 3);
 
 INSERT INTO
-	Don(date, montant, id_donateur, id_association)
+	don(date, montant, id_donateur, id_association)
 VALUES
 	('2020-02-25 18:11:39', 95.4, 1, 1),
 	('2019-08-29 01:18:45', 10.0, 2, 1),
@@ -611,7 +609,7 @@ VALUES
 	('2018-04-05 23:09:45', 25.1, 4, 1);
 
 INSERT INTO
-	Fichier(id_fichier, chemin, titre, date_telechargement)
+	fichier(id_fichier, chemin, titre, date_telechargement)
 VALUES
 	(
 		1,
@@ -681,7 +679,7 @@ VALUES
 	);
 
 INSERT INTO
-	PP(id_photo, id_user)
+	pp(id_photo, id_user)
 VALUES
 	(1, 1),
 	(2, 2),
@@ -695,12 +693,12 @@ VALUES
 	(10, 10);
 
 INSERT INTO
-	Groupe (id_groupe, titre, description)
+	groupe (id_groupe, titre, description)
 VALUES
-	('1', 'Super Groupe 1', 'Description du groupe 1');
+	('1', 'Super groupe 1', 'Description du groupe 1');
 
 INSERT INTO
-	Fichier_groupe(id_photo, id_groupe)
+	fichier_groupe(id_photo, id_groupe)
 VALUES
 	(11, 1);
 
@@ -710,12 +708,12 @@ VALUES
 	(1, 'librecours.net/', 'Libre Cours NA17');
 
 INSERT INTO
-	URL_groupe(id_url, id_groupe)
+	url_groupe(id_url, id_groupe)
 VALUES
 	(1, 1);
 
 INSERT INTO
-	Evt(id_evt, evt, date)
+	evt(id_evt, evt, date)
 VALUES
 	(
 		1,
@@ -724,23 +722,23 @@ VALUES
 	);
 
 INSERT INTO
-	Evt_groupe(id_evt, id_groupe)
+	evt_groupe(id_evt, id_groupe)
 VALUES
 	(1, 1);
 
 CREATE VIEW viewFédération AS
 SELECT
-	Fédération.id_federation,
-	Fédération.id_association,
-	Association.nom,
-	Association.description,
-	Association.adresse,
-	Association.telephone,
-	Association.email,
-	Association.date_creation
+	fédération.id_federation,
+	fédération.id_association,
+	association.nom,
+	association.description,
+	association.adresse,
+	association.telephone,
+	association.email,
+	association.date_creation
 FROM
-	Fédération
-	JOIN Association ON Fédération.id_association = Association.id_association;
+	fédération
+	JOIN association ON fédération.id_association = association.id_association;
 
 CREATE VIEW viewProfilUtilisateur AS
 SELECT
@@ -762,38 +760,38 @@ FROM
 			U.date_derniere_connexion,
 			F.chemin
 		FROM
-			Utilisateur AS U,
-			PP,
-			Fichier AS F
+			utilisateur AS U,
+			pp,
+			fichier AS F
 		WHERE
-			U.id_user = PP.id_user
-			AND PP.id_photo = F.id_fichier
+			U.id_user = pp.id_user
+			AND pp.id_photo = F.id_fichier
 	) AS info_user
-	LEFT JOIN Adhésion AS AD ON AD.id_user = info_user.id_user
+	LEFT JOIN adhésion AS AD ON AD.id_user = info_user.id_user
 WHERE
 	AD.date_expiration > CURRENT_TIMESTAMP;
 
 CREATE VIEW viewAdherantsAsso AS
 SELECT
-	Association.id_association,
-	Adhésion.date_expiration,
-	Adhésion.type_adhésion,
-	Utilisateur.id_user,
-	Utilisateur.nom,
-	Utilisateur.prenom,
-	Utilisateur.date_inscription,
-	Utilisateur.date_derniere_connexion,
-	Utilisateur.adresse,
-	Utilisateur.email,
-	Utilisateur.phone,
-	Utilisateur.website,
-	Fichier.chemin
+	association.id_association,
+	adhésion.date_expiration,
+	adhésion.type_adhésion,
+	utilisateur.id_user,
+	utilisateur.nom,
+	utilisateur.prenom,
+	utilisateur.date_inscription,
+	utilisateur.date_derniere_connexion,
+	utilisateur.adresse,
+	utilisateur.email,
+	utilisateur.phone,
+	utilisateur.website,
+	fichier.chemin
 FROM
-	Association
-	JOIN Adhésion ON Association.id_association = Adhésion.id_association
-	JOIN Utilisateur ON Adhésion.id_user = Utilisateur.id_user
-	JOIN PP ON PP.id_user = Adhésion.id_user
-	JOIN Fichier ON PP.id_photo = Fichier.id_fichier;
+	association
+	JOIN adhésion ON association.id_association = adhésion.id_association
+	JOIN utilisateur ON adhésion.id_user = utilisateur.id_user
+	JOIN pp ON pp.id_user = adhésion.id_user
+	JOIN fichier ON pp.id_photo = fichier.id_fichier;
 
 CREATE VIEW viewAdhérantsActuels AS
 SELECT
@@ -802,13 +800,13 @@ SELECT
 	U.prenom,
 	F.chemin
 FROM
-	Utilisateur AS U,
-	Adhésion AS AD,
-	PP,
-	Fichier F
+	utilisateur AS U,
+	adhésion AS AD,
+	pp,
+	fichier F
 WHERE
-	U.id_user = PP.id_user
-	AND PP.id_photo = F.id_fichier
+	U.id_user = pp.id_user
+	AND pp.id_photo = F.id_fichier
 	AND U.id_user = AD.id_user
 	AND AD.date_expiration > CURRENT_TIMESTAMP;
 
@@ -827,19 +825,19 @@ FROM
 			U.prenom,
 			MAX(AD.date_expiration) AS date
 		FROM
-			Utilisateur AS U,
-			Adhésion AS AD
+			utilisateur AS U,
+			adhésion AS AD
 		WHERE
 			U.id_user = AD.id_user
 			AND AD.date_expiration < CURRENT_TIMESTAMP
 		GROUP BY
 			U.id_user
 	) AS user_info,
-	PP,
-	Fichier AS F
+	pp,
+	fichier AS F
 WHERE
-	user_info.id_user = PP.id_user
-	AND PP.id_photo = F.id_fichier;
+	user_info.id_user = pp.id_user
+	AND pp.id_photo = F.id_fichier;
 
 CREATE VIEW viewAdhésionExpirant AS
 SELECT
@@ -855,44 +853,44 @@ FROM
 			U.prenom,
 			(date_expiration - '1 month' :: INTERVAL) AS limite
 		FROM
-			Utilisateur AS U,
-			Adhésion AS AD
+			utilisateur AS U,
+			adhésion AS AD
 		WHERE
 			U.id_user = AD.id_user
 	) AS user_info,
-	PP,
-	Fichier AS F
+	pp,
+	fichier AS F
 WHERE
-	user_info.id_user = PP.id_user
-	AND F.id_fichier = PP.id_photo
+	user_info.id_user = pp.id_user
+	AND F.id_fichier = pp.id_photo
 	AND user_info.limite < CURRENT_TIMESTAMP;
 
 CREATE VIEW viewDonateursDons AS
 SELECT
-	Donateur_info.nom AS donateur_nom,
-	Donateur_info.prenom AS donateur_prenom,
-	Utilisateur.nom,
-	Utilisateur.prenom,
-	Don.date,
-	Don.montant
+	donateur_info.nom AS donateur_nom,
+	donateur_info.prenom AS donateur_prenom,
+	utilisateur.nom,
+	utilisateur.prenom,
+	don.date,
+	don.montant
 FROM
-	Donateur
-	LEFT JOIN Donateur_utilisateur ON Donateur.id_donateur = Donateur_utilisateur.id_donateur
-	LEFT JOIN Donateur_info ON Donateur.id_donateur = Donateur_info.id_donateur
-	LEFT JOIN Utilisateur ON Donateur_utilisateur.id_user = Utilisateur.id_user
-	LEFT JOIN Don ON Donateur.id_donateur = Don.id_donateur;
+	donateur
+	LEFT JOIN donateur_utilisateur ON donateur.id_donateur = donateur_utilisateur.id_donateur
+	LEFT JOIN donateur_info ON donateur.id_donateur = donateur_info.id_donateur
+	LEFT JOIN utilisateur ON donateur_utilisateur.id_user = utilisateur.id_user
+	LEFT JOIN don ON donateur.id_donateur = don.id_donateur;
 
 CREATE VIEW viewDonateursUtilisateurs AS
 SELECT
-	Donateur_info.nom AS donateur_nom,
-	Donateur_info.prenom AS donateur_prenom,
-	Utilisateur.nom,
-	Utilisateur.prenom
+	donateur_info.nom AS donateur_nom,
+	donateur_info.prenom AS donateur_prenom,
+	utilisateur.nom,
+	utilisateur.prenom
 FROM
-	Donateur
-	JOIN Donateur_utilisateur ON Donateur.id_donateur = Donateur_utilisateur.id_donateur
-	JOIN Donateur_info ON Donateur.id_donateur = Donateur_info.id_donateur
-	JOIN Utilisateur ON Utilisateur.id_user = Donateur_utilisateur.id_user;
+	donateur
+	JOIN donateur_utilisateur ON donateur.id_donateur = donateur_utilisateur.id_donateur
+	JOIN donateur_info ON donateur.id_donateur = donateur_info.id_donateur
+	JOIN utilisateur ON utilisateur.id_user = donateur_utilisateur.id_user;
 
 CREATE VIEW viewHistoriqueAdhésion AS
 SELECT
@@ -901,8 +899,8 @@ SELECT
 	AD.montant,
 	AD.type_adhésion
 FROM
-	Adhésion as AD
-	JOIN Utilisateur as U ON U.id_user = AD.id_user
+	adhésion as AD
+	JOIN utilisateur as U ON U.id_user = AD.id_user
 WHERE
 	AD.date_expiration < CURRENT_TIMESTAMP;
 
@@ -918,13 +916,13 @@ SELECT
 	E.evt,
 	E.date
 FROM
-	Groupe AS G,
-	Fichier AS F,
-	Fichier_groupe as FG,
-	URL_groupe as UG,
+	groupe AS G,
+	fichier AS F,
+	fichier_groupe as FG,
+	url_groupe as UG,
 	URL,
-	Evt_groupe as EG,
-	Evt AS E
+	evt_groupe as EG,
+	evt AS E
 WHERE
 	G.id_groupe = FG.id_groupe
 	AND F.id_fichier = FG.id_photo
